@@ -37,8 +37,6 @@ export function LayerPanel() {
         {layers.map((layer, index) => (
           <div
             key={layer.id}
-            draggable
-            onDragStart={() => setDragIndex(index)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={() => {
               if (dragIndex !== null && dragIndex !== index) {
@@ -46,9 +44,13 @@ export function LayerPanel() {
               }
               setDragIndex(null)
             }}
-            onDragEnd={() => setDragIndex(null)}
           >
-            <LayerCard layer={layer} isSelected={layer.id === selectedLayerId} />
+            <LayerCard
+              layer={layer}
+              isSelected={layer.id === selectedLayerId}
+              onDragStart={() => setDragIndex(index)}
+              onDragEnd={() => setDragIndex(null)}
+            />
           </div>
         ))}
       </div>

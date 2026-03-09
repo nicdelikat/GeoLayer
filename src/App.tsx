@@ -15,20 +15,27 @@ function App() {
 
   return (
     <div className="app">
-      <LayerPanel />
       <div className="main-area">
         <div className="top-bar">
+          <div>
+            <div className="wordmark">GeoLayer</div>
+            <div className="wordmark-sub">Map Overlay Studio</div>
+          </div>
+          <div className="toolbar-spacer" />
           <Toolbar />
         </div>
-        <BaseMap />
-        <div className="bottom-bar">
-          <button className="unit-toggle" onClick={toggleUnitSystem}>
-            {unitSystem === 'metric' ? 'Metric' : 'Imperial'}
-          </button>
-          <button className="unit-toggle" onClick={() => setShowSave(true)}>Save Group</button>
-          <button className="unit-toggle" onClick={() => setShowLoad(true)}>Load Group</button>
+        <div className="map-area">
+          <BaseMap />
+          <div className="bottom-bar">
+            <button className="bottom-btn" onClick={toggleUnitSystem}>
+              {unitSystem === 'metric' ? 'METRIC' : 'IMPERIAL'}
+            </button>
+            <button className="bottom-btn" onClick={() => setShowSave(true)}>SAVE</button>
+            <button className="bottom-btn" onClick={() => setShowLoad(true)}>LOAD</button>
+          </div>
         </div>
       </div>
+      <LayerPanel />
       {showSave && <SaveGroupModal onClose={() => setShowSave(false)} />}
       {showLoad && <LoadGroupModal onClose={() => setShowLoad(false)} />}
     </div>

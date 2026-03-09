@@ -7,9 +7,11 @@ const BLEND_MODES = ['normal', 'multiply', 'screen', 'overlay', 'darken', 'light
 interface LayerCardProps {
   layer: Layer
   isSelected: boolean
+  onDragStart?: () => void
+  onDragEnd?: () => void
 }
 
-export function LayerCard({ layer, isSelected }: LayerCardProps) {
+export function LayerCard({ layer, isSelected, onDragStart, onDragEnd }: LayerCardProps) {
   const updateLayer = useLayerStore((s) => s.updateLayer)
   const removeLayer = useLayerStore((s) => s.removeLayer)
   const selectLayer = useLayerStore((s) => s.selectLayer)
@@ -20,7 +22,12 @@ export function LayerCard({ layer, isSelected }: LayerCardProps) {
       className={`layer-card ${isSelected ? 'layer-card--selected' : ''}`}
       onClick={() => selectLayer(layer.id)}
     >
-      <div className="layer-card-header">
+      <div
+        className="layer-card-header"
+        draggable
+        onDragStart={(e) => { e.stopPropagation(); onDragStart?.() }}
+        onDragEnd={onDragEnd}
+      >
         <label className="layer-visibility" onClick={(e) => e.stopPropagation()}>
           <input
             type="checkbox"

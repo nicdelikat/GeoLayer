@@ -43,6 +43,7 @@ export function BaseMap() {
 
     mapRef.current = leafletMap
     setMap(leafletMap)
+    useLayerStore.getState().setMapInstance(leafletMap)
 
     return () => {
       leafletMap.remove()

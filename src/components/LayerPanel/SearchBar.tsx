@@ -38,6 +38,14 @@ export function SearchBar() {
       bounds: result.boundingBox,
       mapCenterLat: mapCenter[0],
     })
+
+    // Zoom to fit the selected place
+    const map = useLayerStore.getState().mapInstance
+    if (map) {
+      const [south, north, west, east] = result.boundingBox
+      map.fitBounds([[south, west], [north, east]], { padding: [50, 50] })
+    }
+
     setQuery('')
     setResults([])
     setIsOpen(false)

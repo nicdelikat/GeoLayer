@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import type L from 'leaflet'
 import type { Layer, Measurement } from '../types'
 
 type ToolType = 'pin' | 'ruler' | 'area' | 'annotation' | null
@@ -35,6 +36,8 @@ interface LayerStore {
   setActiveTool: (tool: ToolType) => void
   toggleUnitSystem: () => void
   setMapCenter: (center: [number, number]) => void
+  mapInstance: L.Map | null
+  setMapInstance: (map: L.Map | null) => void
 }
 
 let nextId = 1
@@ -69,7 +72,7 @@ export const useLayerStore = create<LayerStore>((set) => ({
             name: partial.name,
             center: partial.center,
             bounds: partial.bounds,
-            tileSourceId: partial.tileSourceId ?? 'osm',
+            tileSourceId: partial.tileSourceId ?? 'carto-dark',
             offset: { x: 0, y: 0 },
             rotation: 0,
             scale: mercatorScale,
@@ -139,4 +142,7 @@ export const useLayerStore = create<LayerStore>((set) => ({
     })),
 
   setMapCenter: (center) => set({ mapCenter: center }),
+
+  mapInstance: null,
+  setMapInstance: (map) => set({ mapInstance: map }),
 }))

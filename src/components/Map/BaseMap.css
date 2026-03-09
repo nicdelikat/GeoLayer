@@ -2,9 +2,36 @@
   position: relative;
   flex: 1;
   overflow: hidden;
+  z-index: 0;
+  isolation: isolate;
 }
 
 .base-map-container {
   width: 100%;
   height: 100%;
+}
+
+/* Leaflet overrides for dark theme */
+.leaflet-container {
+  background: #080c12 !important;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid var(--border2) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  background: var(--surface) !important;
+  color: var(--text2) !important;
+  border-color: var(--border) !important;
+  font-size: 16px !important;
+  width: 30px !important;
+  height: 30px !important;
+  line-height: 30px !important;
+}
+
+.leaflet-control-attribution {
+  display: none !important;
 }

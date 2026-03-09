@@ -7,20 +7,35 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 10px;
-  border: 1px solid #ccc;
+  height: 30px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid var(--border2);
   border-radius: 6px;
-  background: white;
+  color: var(--text2);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.05em;
+  transition: all 0.15s;
+}
+
+.toolbar-btn:hover {
+  color: var(--text);
+  border-color: var(--text2);
 }
 
 .toolbar-btn--active {
-  background: #4a90d9;
-  color: white;
-  border-color: #4a90d9;
+  background: var(--glow);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 .toolbar-btn-icon {
   font-weight: bold;
+}
+
+.toolbar-btn-label {
+  text-transform: uppercase;
 }
