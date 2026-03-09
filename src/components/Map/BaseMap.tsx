@@ -3,6 +3,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { getDefaultProvider } from '../../utils/tiles'
 import { useLayerStore } from '../../hooks/useLayerStore'
+import { useMeasure } from '../../hooks/useMeasure'
 import { OverlayLayer } from './OverlayLayer'
 import './BaseMap.css'
 
@@ -12,6 +13,7 @@ export function BaseMap() {
   const [map, setMap] = useState<L.Map | null>(null)
   const layers = useLayerStore((s) => s.layers)
   const setMapCenter = useLayerStore((s) => s.setMapCenter)
+  const { init, handleMapClick, handleMapDblClick } = useMeasure(map)
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -41,6 +43,17 @@ export function BaseMap() {
       mapRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    if (!map) return
+    init(map)
+    map.on('click', handleMapClick)
+    map.on('dblclick', handleMapDblClick)
+    return () => {
+      map.off('click', handleMapClick)
+      map.off('dblclick', handleMapDblClick)
+    }
+  }, [map, handleMapClick, handleMapDblClick, init])
 
   return (
     <div className="base-map-wrapper">
