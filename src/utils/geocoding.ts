@@ -6,29 +6,36 @@ export interface GeocodingResult {
   lng: number
   boundingBox: [number, number, number, number]
   type: string
+  osmId?: number
+  osmType?: string // 'N', 'W', or 'R'
+  searchQuery?: string // original user query for boundary lookup
 }
 
 const PHOTON_URL = 'https://photon.komoot.io/api'
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search'
 
-export async function searchPlaces(query: string): Promise<GeocodingResult[]> {
+export async function searchPlaces(query: string, signal?: AbortSignal): Promise<GeocodingResult[]> {
   if (!query.trim()) return []
 
   // Try Photon first (fast autocomplete), fall back to Nominatim
   try {
-    return await searchPhoton(query)
-  } catch {
-    return await searchNominatim(query)
+    const results = await searchPhoton(query, signal)
+    // Attach original query for boundary lookups
+    return results.map(r => ({ ...r, searchQuery: query }))
+  } catch (e: any) {
+    if (e?.name === 'AbortError') throw e
+    const results = await searchNominatim(query, signal)
+    return results.map(r => ({ ...r, searchQuery: query }))
   }
 }
 
-async function searchPhoton(query: string): Promise<GeocodingResult[]> {
+async function searchPhoton(query: string, signal?: AbortSignal): Promise<GeocodingResult[]> {
   const params = new URLSearchParams({
     q: query,
-    limit: '6',
+    limit: '8',
   })
 
-  const response = await fetch(`${PHOTON_URL}?${params}`)
+  const response = await fetch(`${PHOTON_URL}?${params}`, { signal })
   if (!response.ok) throw new Error('Photon failed')
 
   const data = await response.json()
@@ -44,10 +51,23 @@ async function searchPhoton(query: string): Promise<GeocodingResult[]> {
     // Build bounding box: [south, north, west, east]
     let boundingBox: [number, number, number, number]
     if (extent) {
-      boundingBox = [extent[1], extent[3], extent[0], extent[2]]
+      let [west, south, east, north] = [extent[0], extent[1], extent[2], extent[3]]
+      // Handle antimeridian-crossing bounds (e.g. Alaska: -180 to 180)
+      // If span is > 180°, clamp to a reasonable bbox around the center point
+      if (Math.abs(east - west) > 180) {
+        const delta = 15 // ~15° around center
+        west = lng - delta
+        east = lng + delta
+      }
+      boundingBox = [south, north, west, east]
     } else {
-      // Fallback: create a small bbox around the point
-      const delta = 0.05
+      // Scale fallback bbox based on type
+      const osmValue = props.osm_value || ''
+      let delta = 0.05
+      if (osmValue === 'continent') delta = 30
+      else if (osmValue === 'country') delta = 10
+      else if (osmValue === 'state') delta = 5
+      else if (osmValue === 'city' || osmValue === 'town') delta = 0.2
       boundingBox = [lat - delta, lat + delta, lng - delta, lng + delta]
     }
 
@@ -59,11 +79,13 @@ async function searchPhoton(query: string): Promise<GeocodingResult[]> {
       lng,
       boundingBox,
       type: props.osm_value || props.type || 'unknown',
+      osmId: props.osm_id,
+      osmType: props.osm_type, // 'N', 'W', or 'R'
     }
   })
 }
 
-async function searchNominatim(query: string): Promise<GeocodingResult[]> {
+async function searchNominatim(query: string, signal?: AbortSignal): Promise<GeocodingResult[]> {
   const params = new URLSearchParams({
     q: query,
     format: 'json',
@@ -73,6 +95,7 @@ async function searchNominatim(query: string): Promise<GeocodingResult[]> {
 
   const response = await fetch(`${NOMINATIM_URL}?${params}`, {
     headers: { 'User-Agent': 'GeoLayer/1.0' },
+    signal,
   })
 
   if (!response.ok) return []

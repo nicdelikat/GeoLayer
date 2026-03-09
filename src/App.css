@@ -56,19 +56,21 @@
   position: relative;
   min-height: 0;
   display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 24px 32px;
 }
 
 .map-frame {
-  flex: 1;
-  max-width: 65%;
-  max-height: 65%;
-  margin: auto;
+  width: 65%;
+  height: 65%;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--border2);
   position: relative;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
 }
 
 /* BOTTOM BAR */

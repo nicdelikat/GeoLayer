@@ -18,6 +18,10 @@ interface LayerStore {
     bounds: [number, number, number, number]
     tileSourceId?: string
     mapCenterLat?: number
+    zoom?: number
+    osmId?: number
+    osmType?: string
+    searchQuery?: string
   }) => void
   removeLayer: (id: string) => void
   updateLayer: (id: string, updates: Partial<Layer>) => void
@@ -60,9 +64,18 @@ export const useLayerStore = create<LayerStore>((set) => ({
 
   addLayer: (partial) =>
     set((state) => {
-      const mapCenterLat = partial.mapCenterLat ?? 0
-      const layerLat = partial.center[0]
-      const mercatorScale = Math.cos((layerLat * Math.PI) / 180) / Math.cos((mapCenterLat * Math.PI) / 180)
+      const isFirst = state.layers.length === 0
+
+      // For the first layer, scale is 1 (it's the reference)
+      // For subsequent layers, correct for Mercator distortion:
+      // Mercator inflates areas at higher latitudes. To show TRUE relative size,
+      // scale overlay by cos(overlayLat) / cos(baseLat)
+      let scale = 1
+      if (!isFirst) {
+        const baseLat = state.layers[0].center[0]
+        const overlayLat = partial.center[0]
+        scale = Math.cos((overlayLat * Math.PI) / 180) / Math.cos((baseLat * Math.PI) / 180)
+      }
 
       return {
         layers: [
@@ -75,12 +88,16 @@ export const useLayerStore = create<LayerStore>((set) => ({
             tileSourceId: partial.tileSourceId ?? 'carto-light',
             offset: { x: 0, y: 0 },
             rotation: 0,
-            scale: mercatorScale,
+            scale,
+            zoom: partial.zoom ?? 10,
             opacity: 0.8,
             visible: true,
             blendMode: 'normal',
-            showBoundary: false,
+            showBoundary: true,
             boundaryGeoJSON: null,
+            osmId: partial.osmId,
+            osmType: partial.osmType,
+            searchQuery: partial.searchQuery,
           },
         ],
       }

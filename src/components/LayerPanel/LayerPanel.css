@@ -7,7 +7,6 @@
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .layer-panel-header {

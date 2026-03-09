@@ -1,7 +1,31 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
+import L from 'leaflet'
 import { searchPlaces, type GeocodingResult } from '../../utils/geocoding'
 import { useLayerStore } from '../../hooks/useLayerStore'
 import './SearchBar.css'
+
+// Simple LRU cache for search results
+const searchCache = new Map<string, GeocodingResult[]>()
+const CACHE_MAX = 50
+
+function getCached(key: string): GeocodingResult[] | undefined {
+  const val = searchCache.get(key)
+  if (val) {
+    // Move to end (most recent)
+    searchCache.delete(key)
+    searchCache.set(key, val)
+  }
+  return val
+}
+
+function setCache(key: string, val: GeocodingResult[]) {
+  if (searchCache.size >= CACHE_MAX) {
+    // Delete oldest entry
+    const first = searchCache.keys().next().value
+    if (first !== undefined) searchCache.delete(first)
+  }
+  searchCache.set(key, val)
+}
 
 export function SearchBar() {
   const [query, setQuery] = useState('')
@@ -9,20 +33,39 @@ export function SearchBar() {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
-  const requestIdRef = useRef(0)
+  const abortRef = useRef<AbortController | null>(null)
   const addLayer = useLayerStore((s) => s.addLayer)
 
-  const doSearch = async (value: string) => {
-    const requestId = ++requestIdRef.current
+  const doSearch = useCallback(async (value: string) => {
+    const trimmed = value.trim().toLowerCase()
+
+    // Check cache first
+    const cached = getCached(trimmed)
+    if (cached) {
+      setResults(cached)
+      setIsOpen(cached.length > 0)
+      setLoading(false)
+      return
+    }
+
+    // Abort any in-flight request
+    if (abortRef.current) abortRef.current.abort()
+    const controller = new AbortController()
+    abortRef.current = controller
+
     setLoading(true)
-    const res = await searchPlaces(value)
-    // Only update if this is still the latest request
-    if (requestId === requestIdRef.current) {
+    try {
+      const res = await searchPlaces(value, controller.signal)
+      if (controller.signal.aborted) return
+      setCache(trimmed, res)
       setResults(res)
       setIsOpen(res.length > 0)
       setLoading(false)
+    } catch (e: any) {
+      if (e?.name === 'AbortError') return
+      setLoading(false)
     }
-  }
+  }, [])
 
   const handleInput = (value: string) => {
     setQuery(value)
@@ -32,30 +75,39 @@ export function SearchBar() {
       setResults([])
       setIsOpen(false)
       setLoading(false)
+      if (abortRef.current) abortRef.current.abort()
       return
     }
 
-    // Fire immediately for 3+ chars, debounce for 2 chars
-    if (value.trim().length >= 3) {
-      doSearch(value)
-    } else {
-      debounceRef.current = setTimeout(() => doSearch(value), 200)
-    }
+    // Debounce all typing — 250ms is fast enough to feel instant
+    debounceRef.current = setTimeout(() => doSearch(value), 250)
   }
 
   const handleSelect = (result: GeocodingResult) => {
     const mapCenter = useLayerStore.getState().mapCenter
+    const map = useLayerStore.getState().mapInstance
+    const [south, north, west, east] = result.boundingBox
+    const bounds: L.LatLngBoundsExpression = [[south, west], [north, east]]
+
+    // Calculate the zoom level that fits this bounding box
+    const zoom = map ? map.getBoundsZoom(L.latLngBounds(bounds), false, [50, 50]) : 10
+
+    const isFirstLayer = useLayerStore.getState().layers.length === 0
+
     addLayer({
       name: result.name,
       center: [result.lat, result.lng],
       bounds: result.boundingBox,
       mapCenterLat: mapCenter[0],
+      zoom,
+      osmId: result.osmId,
+      osmType: result.osmType,
+      searchQuery: result.searchQuery,
     })
 
-    const map = useLayerStore.getState().mapInstance
-    if (map) {
-      const [south, north, west, east] = result.boundingBox
-      map.fitBounds([[south, west], [north, east]], { padding: [50, 50] })
+    // Only move the base map for the first layer
+    if (map && isFirstLayer) {
+      map.fitBounds(bounds, { padding: [50, 50] })
     }
 
     setQuery('')

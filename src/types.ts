@@ -18,8 +18,12 @@ export interface Layer {
   opacity: number
   visible: boolean
   blendMode: string
+  zoom: number
   showBoundary: boolean
   boundaryGeoJSON?: any | null
+  osmId?: number
+  osmType?: string
+  searchQuery?: string
 }
 
 export interface Measurement {
