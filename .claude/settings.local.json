@@ -9,7 +9,8 @@
       "Bash(npx vitest:*)",
       "Bash(npm run:*)",
       "Bash(git:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(curl:*)"
     ]
   }
 }

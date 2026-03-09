@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { searchPlaces, type GeocodingResult } from '../../utils/geocoding'
 import { useLayerStore } from '../../hooks/useLayerStore'
 import './SearchBar.css'
@@ -9,29 +9,42 @@ export function SearchBar() {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const requestIdRef = useRef(0)
   const addLayer = useLayerStore((s) => s.addLayer)
-  const mapCenter = useLayerStore((s) => s.mapCenter)
 
-  const handleInput = useCallback((value: string) => {
+  const doSearch = async (value: string) => {
+    const requestId = ++requestIdRef.current
+    setLoading(true)
+    const res = await searchPlaces(value)
+    // Only update if this is still the latest request
+    if (requestId === requestIdRef.current) {
+      setResults(res)
+      setIsOpen(res.length > 0)
+      setLoading(false)
+    }
+  }
+
+  const handleInput = (value: string) => {
     setQuery(value)
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
     if (value.trim().length < 2) {
       setResults([])
       setIsOpen(false)
+      setLoading(false)
       return
     }
 
-    debounceRef.current = setTimeout(async () => {
-      setLoading(true)
-      const res = await searchPlaces(value)
-      setResults(res)
-      setIsOpen(res.length > 0)
-      setLoading(false)
-    }, 150)
-  }, [])
+    // Fire immediately for 3+ chars, debounce for 2 chars
+    if (value.trim().length >= 3) {
+      doSearch(value)
+    } else {
+      debounceRef.current = setTimeout(() => doSearch(value), 200)
+    }
+  }
 
   const handleSelect = (result: GeocodingResult) => {
+    const mapCenter = useLayerStore.getState().mapCenter
     addLayer({
       name: result.name,
       center: [result.lat, result.lng],
@@ -39,7 +52,6 @@ export function SearchBar() {
       mapCenterLat: mapCenter[0],
     })
 
-    // Zoom to fit the selected place
     const map = useLayerStore.getState().mapInstance
     if (map) {
       const [south, north, west, east] = result.boundingBox
@@ -55,7 +67,7 @@ export function SearchBar() {
     <div className="search-bar">
       <input
         type="text"
-        placeholder="Add a place..."
+        placeholder="Search city or region..."
         value={query}
         onChange={(e) => handleInput(e.target.value)}
         onBlur={() => setTimeout(() => setIsOpen(false), 200)}
