@@ -7,7 +7,9 @@ import './LayerPanel.css'
 export function LayerPanel() {
   const layers = useLayerStore((s) => s.layers)
   const selectedLayerId = useLayerStore((s) => s.selectedLayerId)
+  const reorderLayers = useLayerStore((s) => s.reorderLayers)
   const [collapsed, setCollapsed] = useState(false)
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
 
   if (collapsed) {
     return (
@@ -32,12 +34,22 @@ export function LayerPanel() {
         {layers.length === 0 && (
           <p className="layer-list-empty">Search for a place to add a layer</p>
         )}
-        {layers.map((layer) => (
-          <LayerCard
+        {layers.map((layer, index) => (
+          <div
             key={layer.id}
-            layer={layer}
-            isSelected={layer.id === selectedLayerId}
-          />
+            draggable
+            onDragStart={() => setDragIndex(index)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => {
+              if (dragIndex !== null && dragIndex !== index) {
+                reorderLayers(dragIndex, index)
+              }
+              setDragIndex(null)
+            }}
+            onDragEnd={() => setDragIndex(null)}
+          >
+            <LayerCard layer={layer} isSelected={layer.id === selectedLayerId} />
+          </div>
         ))}
       </div>
     </aside>
