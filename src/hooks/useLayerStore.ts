@@ -72,7 +72,7 @@ export const useLayerStore = create<LayerStore>((set) => ({
             name: partial.name,
             center: partial.center,
             bounds: partial.bounds,
-            tileSourceId: partial.tileSourceId ?? 'carto-dark',
+            tileSourceId: partial.tileSourceId ?? 'carto-light',
             offset: { x: 0, y: 0 },
             rotation: 0,
             scale: mercatorScale,

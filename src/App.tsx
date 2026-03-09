@@ -25,7 +25,9 @@ function App() {
           <Toolbar />
         </div>
         <div className="map-area">
-          <BaseMap />
+          <div className="map-frame">
+            <BaseMap />
+          </div>
           <div className="bottom-bar">
             <button className="bottom-btn" onClick={toggleUnitSystem}>
               {unitSystem === 'metric' ? 'METRIC' : 'IMPERIAL'}

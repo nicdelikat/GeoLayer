@@ -56,6 +56,15 @@
   position: relative;
   min-height: 0;
   display: flex;
+  padding: 16px;
+}
+
+.map-frame {
+  flex: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+  position: relative;
 }
 
 /* BOTTOM BAR */
