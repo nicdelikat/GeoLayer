@@ -1,0 +1,10 @@
+.base-map-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.base-map-container {
+  width: 100%;
+  height: 100%;
+}
