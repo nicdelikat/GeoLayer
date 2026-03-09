@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import { getProviderById, getDefaultProvider } from '../../utils/tiles'
+import { fetchBoundary } from '../../utils/boundaries'
 import { useLayerStore } from '../../hooks/useLayerStore'
 import type { Layer } from '../../types'
 import { LayerHandles } from './LayerHandles'
@@ -16,6 +17,7 @@ export function OverlayLayer({ layer, map }: OverlayLayerProps) {
   const tileLayerRef = useRef<L.TileLayer | null>(null)
   const miniMapRef = useRef<L.Map | null>(null)
   const selectLayer = useLayerStore((s) => s.selectLayer)
+  const updateLayer = useLayerStore((s) => s.updateLayer)
   const selectedLayerId = useLayerStore((s) => s.selectedLayerId)
   const isSelected = selectedLayerId === layer.id
 
@@ -65,6 +67,30 @@ export function OverlayLayer({ layer, map }: OverlayLayerProps) {
   useEffect(() => {
     miniMapRef.current?.setView(layer.center, map.getZoom(), { animate: false })
   }, [layer.center])
+
+  useEffect(() => {
+    if (!layer.showBoundary || layer.boundaryGeoJSON || !miniMapRef.current) return
+
+    fetchBoundary(layer.name, layer.bounds).then((geojson) => {
+      if (geojson) {
+        updateLayer(layer.id, { boundaryGeoJSON: geojson })
+      }
+    })
+  }, [layer.showBoundary, layer.boundaryGeoJSON, layer.name, layer.bounds, layer.id, updateLayer])
+
+  useEffect(() => {
+    if (!miniMapRef.current) return
+    miniMapRef.current.eachLayer((l: any) => {
+      if (l._isBoundary) miniMapRef.current!.removeLayer(l)
+    })
+
+    if (layer.showBoundary && layer.boundaryGeoJSON) {
+      const geoLayer = L.geoJSON(layer.boundaryGeoJSON as any, {
+        style: { color: '#4a90d9', weight: 2, fillOpacity: 0.1 },
+      }).addTo(miniMapRef.current);
+      (geoLayer as any)._isBoundary = true
+    }
+  }, [layer.showBoundary, layer.boundaryGeoJSON])
 
   if (!layer.visible) return null
 
