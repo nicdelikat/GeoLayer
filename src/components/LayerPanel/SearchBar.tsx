@@ -28,7 +28,7 @@ export function SearchBar() {
       setResults(res)
       setIsOpen(res.length > 0)
       setLoading(false)
-    }, 300)
+    }, 150)
   }, [])
 
   const handleSelect = (result: GeocodingResult) => {
