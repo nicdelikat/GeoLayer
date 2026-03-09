@@ -35,6 +35,12 @@ export function BaseMap() {
       setMapCenter([center.lat, center.lng])
     })
 
+    leafletMap.on('click', () => {
+      if (!useLayerStore.getState().activeTool) {
+        useLayerStore.getState().selectLayer(null)
+      }
+    })
+
     mapRef.current = leafletMap
     setMap(leafletMap)
 
