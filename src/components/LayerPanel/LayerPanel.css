@@ -1,0 +1,139 @@
+.layer-panel {
+  width: 280px;
+  min-width: 280px;
+  height: 100%;
+  background: #f8f9fa;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.layer-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+.layer-panel-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+}
+
+.sidebar-toggle--collapsed {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.layer-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.layer-list-empty {
+  padding: 16px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+}
+
+.layer-card {
+  margin: 4px 0;
+  padding: 8px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.layer-card--selected {
+  border-color: #4a90d9;
+  box-shadow: 0 0 0 1px #4a90d9;
+}
+
+.layer-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.layer-visibility input {
+  margin: 0;
+}
+
+.layer-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layer-delete {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+}
+
+.layer-delete:hover {
+  color: #e44;
+}
+
+.layer-card-controls {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.layer-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.layer-control span:first-child {
+  width: 52px;
+  color: #666;
+}
+
+.layer-control input[type="range"] {
+  flex: 1;
+}
+
+.layer-control select {
+  flex: 1;
+  font-size: 12px;
+  padding: 2px;
+}
+
+.layer-control-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
