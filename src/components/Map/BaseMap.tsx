@@ -1,13 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { getDefaultProvider } from '../../utils/tiles'
 import { useLayerStore } from '../../hooks/useLayerStore'
+import { OverlayLayer } from './OverlayLayer'
 import './BaseMap.css'
 
 export function BaseMap() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
+  const [map, setMap] = useState<L.Map | null>(null)
+  const layers = useLayerStore((s) => s.layers)
   const setMapCenter = useLayerStore((s) => s.setMapCenter)
 
   useEffect(() => {
@@ -31,6 +34,7 @@ export function BaseMap() {
     })
 
     mapRef.current = leafletMap
+    setMap(leafletMap)
 
     return () => {
       leafletMap.remove()
@@ -41,6 +45,9 @@ export function BaseMap() {
   return (
     <div className="base-map-wrapper">
       <div ref={containerRef} className="base-map-container" />
+      {map && layers.map((layer) => (
+        <OverlayLayer key={layer.id} layer={layer} map={map} />
+      ))}
     </div>
   )
 }
