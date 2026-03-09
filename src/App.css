@@ -54,6 +54,8 @@
   flex: 1;
   margin-top: 52px;
   position: relative;
+  min-height: 0;
+  display: flex;
 }
 
 /* BOTTOM BAR */
